@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>लोक सेवा आयोग तयारी पोर्टल - jagdishor.com.np</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap');
+        body { font-family: 'Mukta', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-blue-700 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold tracking-wide"><i class="fa-solid fa-graduation-cap mr-2"></i>PSC तयारी पोर्टल</h1>
+            <button onclick="toggleAdminModal()" class="bg-blue-600 hover:bg-blue-800 px-4 py-2 rounded-lg text-sm font-semibold transition-all"><i class="fa-solid fa-lock mr-1"></i> Admin Panel</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-6 overflow-x-auto">
+            <div id="tabs-container" class="flex space-x-2 border-b border-gray-200 pb-2 min-w-max">
+                </div>
+        </div>
+
+        <div id="questions-loading" class="text-center py-12">
+            <div class="animate-spin text-blue-700 text-4xl mb-4"><i class="fa-solid fa-circle-notch"></i></div>
+            <p class="text-gray-500">सामग्री लोड हुँदैछ...</p>
+        </div>
+
+        <div id="questions-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+            </div>
+    </main>
+
+    <div id="admin-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+        <div id="login-box" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md mx-4 relative">
+            <button onclick="toggleAdminModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Admin Login</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Secret Token / Password</label>
+                    <input type="password" id="admin-token" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cloudflare KV Secret Token">
+                </div>
+                <button onclick="verifyAndLoadAdmin()" class="w-full bg-blue-700 hover:bg-blue-800 text-white p-3 rounded-lg font-semibold transition">प्यानल खोल्नुहोस्</button>
+            </div>
+        </div>
+
+        <div id="dashboard-box" class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto hidden relative">
+            <button onclick="toggleAdminModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h2 class="text-2xl font-bold mb-4 text-blue-700 border-b pb-2"><i class="fa-solid fa-gauge mr-2"></i>Admin Control Dashboard</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 bg-gray-50 p-4 rounded-xl border">
+                    <h3 class="font-bold mb-3 text-gray-700 text-lg">नयाँ प्रश्न / उत्तर थप्नुहोस्</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500">विषय / ट्याब छान्नुहोस् वा नयाँ लेख्नुहोस्</label>
+                            <input type="text" id="form-category" list="categories-list" class="w-full p-2.5 bg-white border rounded-lg mt-1" placeholder="उदा: शासन प्रणाली, समसामयिक विषय">
+                            <datalist id="categories-list">
+                                <option value="शासन प्रणाली">
+                                <option value="समसामयिक विषय">
+                                <option value="सेवा समूह सम्बन्धी विषय">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500">प्रश्न शिर्षक</label>
+                            <textarea id="form-question" class="w-full p-2.5 bg-white border rounded-lg mt-1" rows="2" placeholder="प्रश्न यहाँ लेख्नुहोस्..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500">विस्तृत उत्तर</label>
+                            <textarea id="form-answer" class="w-full p-2.5 bg-white border rounded-lg mt-1" rows="5" placeholder="उत्तर बुँदागत रूपमा वा व्याख्या गरेर यहाँ लेख्नुहोस्..."></textarea>
+                        </div>
+                        <button onclick="saveQuestion()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold transition w-full"><i class="fa-solid fa-floppy-disk mr-2"></i>सुरक्षित गर्नुहोस् (Save)</button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold mb-3 text-gray-700 text-lg">सिस्टम जानकारी</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">यहाँबाट थपिएका प्रश्नहरू सिधै Cloudflare KV Database मा सुरक्षित हुन्छन् र `jagdishor.com.np` मा तुरुन्तै अपडेट देखिन्छन्।</p>
+                    </div>
+                    <div class="pt-4 border-t text-xs text-gray-400">
+                        Logged in via Cloudflare Security Token
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/questions'; // Cloudflare Worker Endpoint
+        let allData = {};
+        let currentTab = "";
+
+        // Initial Data Load
+        async function loadData() {
+            try {
+                const res = await fetch(API_URL);
+                allData = await res.json();
+                renderTabs();
+                // Select first tab by default if available
+                const categories = Object.keys(allData);
+                if(categories.length > 0) {
+                    switchTab(categories[0]);
+                } else {
+                    document.getElementById('questions-loading').innerHTML = "<p class='text-gray-500'>कुनै डेटा फेला परेन। एडमिन प्यानलबाट प्रश्न थप्नुहोस्।</p>";
+                }
+            } catch (err) {
+                console.error("Error loading data:", err);
+                document.getElementById('questions-loading').innerHTML = "<p class='text-red-500'>डेटा लोड गर्न समस्या भयो। कृपया API र KV सेटिङ जाँच्नुहोस्।</p>";
+            }
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            const categories = Object.keys(allData);
+            
+            // Default categories ensure standard display
+            const defaultCategories = ["शासन प्रणाली", "समसामयिक विषय", "सेवा समूह सम्बन्धी विषय"];
+            const finalCategories = Array.from(new Set([...defaultCategories, ...categories]));
+
+            container.innerHTML = finalCategories.map(cat => `
+                <button onclick="switchTab('${cat}')" id="tab-${cat}" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200">
+                    ${cat}
+                </button>
+            `).join('');
+            
+            // Build datalist for admin form
+            document.getElementById('categories-list').innerHTML = finalCategories.map(cat => `<option value="${cat}">`).join('');
+        }
+
+        function switchTab(category) {
+            currentTab = category;
+            
+            // Handle Active/Inactive Tab UI styles
+            document.querySelectorAll('#tabs-container button').forEach(btn => {
+                btn.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200";
+            });
+            const activeTab = document.getElementById(`tab-${category}`);
+            if(activeTab) activeTab.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap bg-blue-700 text-white shadow-sm";
+
+            // Render Questions
+            const qContainer = document.getElementById('questions-container');
+            const loadingGeo = document.getElementById('questions-loading');
+            
+            const questions = allData[category] || [];
+            if(questions.length === 0) {
+                qContainer.classList.add('hidden');
+                loadingGeo.innerHTML = `<p class='text-gray-500 py-8'>यस ट्याबमा हाल कुनै प्रश्नहरू छैनन्।</p>`;
+                loadingGeo.classList.remove('hidden');
+                return;
+            }
+
+            loadingGeo.classList.add('hidden');
+            qContainer.classList.remove('hidden');
+            
+            qContainer.innerHTML = questions.map((q, idx) => `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-start gap-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md mt-1">Q.${idx+1}</span>
+                        <h3 class="text-lg font-bold text-gray-900 leading-snug">${q.question}</h3>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-2"><i class="fa-solid fa-square-poll-horizontal mr-1"></i> आधिकारिक उत्तर:</p>
+                        <p class="text-gray-700 whitespace-pre-line leading-relaxed">${q.answer}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // UI Modals toggles
+        function toggleAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function verifyAndLoadAdmin() {
+            const token = document.getElementById('admin-token').value;
+            if(!token) return alert("कृपया Cloudflare Token राख्नुहोस्।");
+            
+            // Switch view from login form to admin panel layout
+            document.getElementById('login-box').classList.add('hidden');
+            document.getElementById('dashboard-box').classList.remove('hidden');
+        }
+
+        // Save Function via API
+        async function saveQuestion() {
+            const token = document.getElementById('admin-token').value;
+            const category = document.getElementById('form-category').value.trim();
+            const question = document.getElementById('form-question').value.trim();
+            const answer = document.getElementById('form-answer').value.trim();
+
+            if(!category || !question || !answer) return alert("सबै कोठाहरू भर्नु अनिवार्य छ।");
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({ category, question, answer })
+                });
+
+                if(response.ok) {
+                    alert("प्रश्न सफलतापूर्वक सुरक्षित गरियो!");
+                    // Clear inputs
+                    document.getElementById('form-question').value = "";
+                    document.getElementById('form-answer').value = "";
+                    // Reload data
+                    await loadData();
+                    toggleAdminModal();
+                } else {
+                    const errText = await response.text();
+                    alert("त्रुटि: " + errText);
+                }
+            } catch(err) {
+                alert("सर्भरसँग जडान हुन सकेन।");
+            }
+        }
+
+        // Run application on start
+        window.onload = loadData;
+    </script>
+</body>
+</html>
